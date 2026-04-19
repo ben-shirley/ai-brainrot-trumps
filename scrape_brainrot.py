@@ -1,15 +1,11 @@
-
-from PIL import Image
-from typing import Any
 import json
-from os import name
 import sys
 from logging import Logger
+from pathlib import Path
+from typing import Any
 
 import requests
 from bs4 import BeautifulSoup
-
-from src.trading_card import TradingCard
 
 LOGGER = Logger("brainrot scraper")
 
@@ -18,15 +14,17 @@ def main():
     output_directory = sys.argv[1]
     BRAINROT_URL = "https://italianbrainrotcharacters.com"
     # scrape_character(BRAINROT_URL, "/nooo-my-hotspot")
-    cards = parse_all_brainrot(BRAINROT_URL)
+    cards = parse_all_brainrot(BRAINROT_URL, f"{output_directory}/images")
     for card in cards:
-        output_file = f"{output_directory}/{card["name"].replace(" ", "_")}.json"  # ty:ignore[unresolved-attribute]
-        with open(output_file, "w") as file:
+        output_file = (
+            f"{output_directory}/characters/{card['name'].replace(' ', '_')}.json"
+        )
+        with Path(output_file).open("w") as file:
             file.write(json.dumps(card, indent=4))
-            print(f"wrote {card["name"]} to file")
+            print(f"wrote {card['name']} to file")
 
 
-def parse_all_brainrot(url: str) -> list[dict[str, Any]]:
+def parse_all_brainrot(url: str, image_dir: str) -> list[dict[str, Any]]:
 
     res = requests.get(url)
     parser = BeautifulSoup(res.content, "html.parser")
@@ -38,7 +36,7 @@ def parse_all_brainrot(url: str) -> list[dict[str, Any]]:
     print(brainrot_extensions)
     cards = []
     for extension in brainrot_extensions:
-        card = scrape_character(url, extension)
+        card = scrape_character(url, extension, image_dir)
         if card:
             cards.append(card)
         else:
@@ -46,7 +44,9 @@ def parse_all_brainrot(url: str) -> list[dict[str, Any]]:
     return cards
 
 
-def scrape_character(base_url: str, extension: str) -> dict[str, Any] | None:
+def scrape_character(
+    base_url: str, extension: str, image_dir: str
+) -> dict[str, Any] | None:
     res = requests.get(base_url + extension)
     parser = BeautifulSoup(res.content, "html.parser")
     parser.prettify()
@@ -76,35 +76,33 @@ def scrape_character(base_url: str, extension: str) -> dict[str, Any] | None:
         lore = lore_tag.text
 
     character_img = parser.find("div", class_="character-img")
-    image = None
     if character_img is not None:
         img_elem = character_img.find("img")
         if img_elem is not None:
             image_ext = str(img_elem.attrs["src"])
-            image = get_brainrot_image(base_url, image_ext)
-
-
+            save_brainrot_image(base_url, image_ext, image_dir)
 
     return {
-        "name":meta_dict.get("Name", "error"),
-        "short_name":meta_dict.get("Short Name", None),
-        "height":meta_dict.get("Height", None),
-        "weight":meta_dict.get("Weight", None),
-        "hp":stat_dict.get("HP", None),
-        "attack":stat_dict.get("Attack", None),
-        "defense":stat_dict.get("Defense", None),
-        "special_attack":stat_dict.get("Special Attack", None),
-        "special_defense":stat_dict.get("Special Defense", None),
-        "speed":stat_dict.get("Speed", None),
-        "lore": lore
+        "name": meta_dict.get("Name", "error"),
+        "short_name": meta_dict.get("Short Name"),
+        "height": meta_dict.get("Height"),
+        "weight": meta_dict.get("Weight"),
+        "hp": stat_dict.get("HP"),
+        "attack": stat_dict.get("Attack"),
+        "defense": stat_dict.get("Defense"),
+        "special_attack": stat_dict.get("Special Attack"),
+        "special_defense": stat_dict.get("Special Defense"),
+        "speed": stat_dict.get("Speed"),
+        "lore": lore,
     }
 
-def get_brainrot_image(base_url: str, extension: str) -> bool:
+
+def save_brainrot_image(base_url: str, extension: str, output_dir: str) -> None:
     res = requests.get(base_url + extension).content
-    filename = extension.split("/")[-1]
-    with open(f"resources/images/{filename}.jpg", "wb") as file:
+    filename = extension.split("/")[-1].split(".")[0]
+    with Path(f"{output_dir}/{filename}.jpg").open("wb") as file:
         file.write(res)
-    return True
+
 
 if __name__ == "__main__":
     main()
