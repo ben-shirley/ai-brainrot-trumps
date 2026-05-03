@@ -11,4 +11,5 @@ wheels/
 
 # additional ignores
 resources
+.ruff_cache
 .env

@@ -6,8 +6,14 @@ readme = "README.md"
 requires-python = ">=3.13"
 dependencies = [
     "bs4>=0.0.2",
+    "dagster>=1.13.1",
+    "dagster-dg-cli>=1.13.1",
+    "dagster-webserver>=1.13.1",
     "pillow>=12.2.0",
     "pydantic>=2.13.0",
+    "pydantic-ai>=1.44.0",
+    "pydanticai-ollama>=0.1.4",
+    "reportlab>=4.4.10",
     "requests>=2.33.1",
 ]
 
@@ -37,3 +43,10 @@ extend-select = [
     "TD",       # Be diligent with TODO comments
     "NPY",      # Some numpy-specific things
 ]
+
+[tool.dg]
+directory_type="project"
+
+
+[tool.dg.project]
+root_module = "src.brainrot_tcg"
