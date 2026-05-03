@@ -36,5 +36,6 @@ CREATE TABLE IF NOT EXISTS scraped_data(
     defense INT CHECK(defense>=0),
     special_attack INT CHECK(special_attack>=0),
     special_defense INT CHECK(special_defense>=0),
-    speed INT CHECK(speed>=0)
+    speed INT CHECK(speed>=0),
+    lore TEXT
 );

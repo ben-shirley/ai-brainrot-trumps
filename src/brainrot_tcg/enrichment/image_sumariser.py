@@ -56,11 +56,3 @@ class ImageSummarizer:
             return response.json()["response"]
 
         raise Exception(f"API Error: {response.status_code}")
-
-
-if __name__ == "__main__":
-    img_path = "resources/images/tung-tung-hurar-tung-tung-tung-sahur.jpg"
-    test_image = Image.open(img_path)
-
-    summarizer = ImageSummarizer()
-    print(summarizer.summarize_image(test_image))

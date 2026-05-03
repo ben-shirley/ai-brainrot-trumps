@@ -10,6 +10,8 @@ wheels/
 .venv
 
 # additional ignores
-resources
+./resources
 .ruff_cache
 .env
+.coverage
+.pytest_cache

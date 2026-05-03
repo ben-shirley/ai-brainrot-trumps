@@ -8,9 +8,9 @@ def save_scraped_data(
 ) -> None:
     cursor = connection.cursor()
     query = f"""INSERT INTO {table_name}(
-        name, short_name, weight, weight_units, height, height_units,
-        hp, attack, defense, special_attack, special_defense, speed)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
+        extension, name, short_name, weight, weight_units, height, height_units,
+        hp, attack, defense, special_attack, special_defense, speed, lore)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
     """
     cursor.execute(
         query,
@@ -28,6 +28,7 @@ def save_scraped_data(
             data.get("special_attack"),
             data.get("special_defense"),
             data.get("speed"),
+            data.get("lore"),
         ),
     )
     connection.commit()
@@ -39,11 +40,11 @@ def get_all_unprocessed_scraped_data(
     query = f"""
         SELECT
             name, short_name, weight, weight_units, height, height_units,
-            hp, attack, defense, special_attack, special_defense, speed,
-        FROM {table_name} scraped_data
+            hp, attack, defense, special_attack, special_defense, speed, lore
+        FROM {table_name} AS scraped_data
         WHERE NOT EXISTS (
             SELECT 1
-            FROM {excluded_table} processed_data
+            FROM {excluded_table} AS processed_data
             WHERE scraped_data.name = processed_data.name
         );
     """
@@ -66,7 +67,7 @@ def get_all_unprocessed_scraped_data(
                 "special_attack": character[9],
                 "special_defense": character[10],
                 "speed": character[11],
-                "rarity": character[12],
+                "lore": character[12],
             }
         )
     return characters
@@ -106,7 +107,7 @@ def get_all_brainrot(
     connection: sqlite3.Connection, table_name: str
 ) -> list[TopTrumpsCard]:
     query = f"""SELECT
-        name, short_name, weight, weight_units, height, height_units,
+        name, short_name, height, height_units, weight, weight_units,
         hp, attack, defense, special_attack, special_defense, speed,
         rarity FROM {table_name};"""
 

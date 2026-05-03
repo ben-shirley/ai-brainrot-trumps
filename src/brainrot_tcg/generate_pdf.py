@@ -1,4 +1,5 @@
 from io import BytesIO
+from logging import Logger
 
 from PIL import Image
 from reportlab.lib.pagesizes import A4, landscape
@@ -15,7 +16,9 @@ CARD_MARGIN = 10
 
 
 def create_pdf(
-    characters: list[tuple[TopTrumpsCard, Image.Image]], resource_filepath: str
+    characters: list[tuple[TopTrumpsCard, Image.Image]],
+    resource_filepath: str,
+    logger: Logger | None = None,
 ) -> bytes:
     x_index = 0
     y_index = 0
@@ -27,7 +30,11 @@ def create_pdf(
 
     pdf_io = BytesIO()
     pdf = canvas.Canvas(pdf_io, pagesize=landscape(A4))
-    for character, image in characters:
+    if logger:
+        logger.info("creating pdf")
+    for i, (character, image) in enumerate(characters):
+        if logger and i % 10 == 0:
+            logger.info(f"drawing {i}th character, {character.name}")
         draw_card(
             pdf=pdf,
             x=margin + x_index * x_spacing,
@@ -45,7 +52,7 @@ def create_pdf(
             pdf.showPage()
 
     pdf.save()
-    return pdf_io.read()
+    return pdf_io.getvalue()
 
 
 def draw_card(
@@ -73,8 +80,8 @@ def draw_card(
     )
 
     pdf.drawImage(
-        ImageReader(BytesIO(character_img.tobytes())),
-        x=x + ((CARD_WIDTH + IMAGE_SIZE) / 2) * mm,
+        ImageReader(character_img),
+        x=x + ((CARD_WIDTH - IMAGE_SIZE) / 2) * mm,
         y=y + 44 * mm,
         height=IMAGE_SIZE * mm,
         width=IMAGE_SIZE * mm,
@@ -88,12 +95,12 @@ def draw_card(
     pdf.drawString(
         x=x + CARD_MARGIN,
         y=y + 29 * mm,
-        text=f"- Height: {character.weight} {character.weight_units}",
+        text=f"- Weight: {character.weight} {character.weight_units}",
     )
     pdf.drawString(
         x=x + CARD_MARGIN,
         y=y + 25.5 * mm,
-        text=f"- Weight: {character.height} {character.height_units}",
+        text=f"- Height: {character.height} {character.height_units}",
     )
     pdf.drawString(x=x + CARD_MARGIN, y=y + 22 * mm, text=f"- HP: {character.hp}")
     pdf.drawString(

@@ -2,7 +2,6 @@ from sqlite3 import IntegrityError
 
 import dagster as dg
 from bs4 import BeautifulSoup
-from PIL import Image
 
 from src.brainrot_tcg.database import (
     get_all_brainrot,
@@ -46,12 +45,13 @@ def get_processed_brainrot_characters(
     connection = database.connection()
 
     query = f"SELECT extension FROM {database.scraped_data_table_name}"
-    characters: list[tuple[str]] = connection.execute(query).fetchall()
-    character_extensions = {
-        character[0].lower().replace(" ", "-") for character in characters
-    }
+    extensions: list[tuple[str]] = connection.execute(query).fetchall()
+    character_extensions = {extension[0] for extension in extensions}
+    connection.close()
 
-    context.log.info(f"database response: {len(characters)} already processed")
+    context.log.info(
+        f"database response: {len(character_extensions)} already processed"
+    )
     context.log.info(character_extensions)
     return character_extensions
 
@@ -110,7 +110,6 @@ def save_and_enrich_brainrot(
                     + f"Summary of attached image:\n{image_summary}"
                 )
                 card = character_creator.generate(character)
-
                 save_card(
                     card=card,
                     connection=connection,
@@ -140,7 +139,9 @@ def generate_pdf(
     ]
 
     pdf_data = create_pdf(
-        characters=character_data, resource_filepath=pdf_resource.pdf_resource_dir
+        characters=character_data,
+        resource_filepath=pdf_resource.pdf_resource_dir,
+        logger=dg.get_dagster_logger(),
     )
     pdf_resource.save(pdf_data)
     context.log.info(

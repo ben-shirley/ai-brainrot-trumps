@@ -7,7 +7,6 @@ requires-python = ">=3.13"
 dependencies = [
     "bs4>=0.0.2",
     "dagster>=1.13.1",
-    "dagster-dg-cli>=1.13.1",
     "dagster-webserver>=1.13.1",
     "pillow>=12.2.0",
     "pydantic>=2.13.0",
@@ -17,11 +16,22 @@ dependencies = [
     "requests>=2.33.1",
 ]
 
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[build-system]
+requires = ["setuptools>=61"]
+build-backend = "setuptools.build_meta"
+
 [dependency-groups]
 dev = [
     "commitizen>=4.13.10",
+    "pytest>=9.0.3",
+    "pytest-cov>=7.1.0",
+    "pytest-env>=1.6.0",
     "ruff>=0.15.10",
     "ty>=0.0.30",
+    "dagster-dg-cli>=1.13.1",
 ]
 
 [tool.ruff.lint]
@@ -50,3 +60,11 @@ directory_type="project"
 
 [tool.dg.project]
 root_module = "src.brainrot_tcg"
+
+[tool.pytest.ini_options]
+env = [
+    "MODEL_NAME=fake model",
+    "IMAGE_MODEL_NAME=fake model",
+    "MODEL_ENDPOINT=fake endpoint",
+    "API_KEY=none"
+]
