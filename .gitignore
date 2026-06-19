@@ -10,7 +10,7 @@ wheels/
 .venv
 
 # additional ignores
-./resources
+./resources/private
 .ruff_cache
 .env
 .coverage
